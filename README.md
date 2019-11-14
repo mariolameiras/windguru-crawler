@@ -46,7 +46,7 @@ document.getElementById('div_wgfcst0')
 should output
 <div class="obal-wrap" id="div_wgfcst0"></div>
 ```
-
+``setup.py`` files, check out `[this repository](https://github.com/kennethreitz/setup.py)`_.
 License
 ----
 GNU Affero General Public License v3.0

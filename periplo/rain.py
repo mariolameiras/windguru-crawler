@@ -5,6 +5,8 @@ from itertools import chain
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+import pprint
+from core import hmm
 
 
 def fetch_html(url):
@@ -25,6 +27,7 @@ def fetch_html_headless(url):
     options.add_argument('--window-size=1920x1080')
     driver = os.path.join(os.getcwd(), 'chromedriver')
 
+
     try:
         browser = webdriver.Chrome(chrome_options=options,
                                    executable_path=driver)
@@ -36,45 +39,46 @@ def fetch_html_headless(url):
     except Exception as e:
         print(e)
 
+def fetch_model(soup,table_id,model_id):
+    tr_dates = soup('tr', {'id': table_id})
+    hours = [td.contents for td in
+             chain.from_iterable([x.find_all('td') for x in tr_dates])]
+    tr = soup("tr", {'id': model_id})
+    wave_period = [td.contents[0] for td in
+                   chain.from_iterable([x.find_all('td') for x in tr])]
+    #    dhoje = datetime.now().day
+    #    forecast = filter(lambda x: int(x[0][2].strip('.')) == dhoje,
+#    forecast = zip(hours, wave_period)
+    
+    model = dict(
+        date=hours,
+        period=wave_period
+    )
+
+#       for h, p in forecast:
+#        print('{}: {}'.format(h[2].strip('.') + " - " + h[4], p))
+
+    return model
+
+
 
 def main():
     print('Starting windGuru crawler...')
 
-    max_retries = 5
-    current = 1
-    url = "https://www.windguru.cz/263"
-    td_arr = None
+
+    url = "https://windguru.cz/103"
+    wave_period = None
     hours = None
-    for current in range(max_retries):
-        print('trying number {}'.format(current + 1))
 
-        html = fetch_html_headless(url)
+    html = fetch_html_headless(url)
 
-        soup = BeautifulSoup(html, 'lxml')
-        tr_dates = soup('tr', {'id': 'tabid_0_0_dates'})
-        hours = [td.contents for td in
-                 chain.from_iterable([x.find_all('td') for x in tr_dates])]
-        tr = soup("tr", {'id': 'tabid_0_0_APCPs'})
-        td_arr = [td.contents[0] for td in
-                  chain.from_iterable([x.find_all('td') for x in tr])]
-        if td_arr and hours:
-            break
-        else:
-            print('DAAAAMMMMMNNN!!!')
-            current += 1
+    soup = BeautifulSoup(html, 'lxml')
 
-    if not td_arr or not hours:
-        print('Failed after {} tries'.format(current))
-        exit(0)
+    model = fetch_model(soup,'tabid_6_0_dates','tabid_6_0_PERPW')
 
-    dhoje = datetime.now().day
-    forecast = filter(lambda x: int(x[0][2].strip('.')) == dhoje,
-                      zip(hours, td_arr))
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(model)
 
-    for h, p in forecast:
-        print('{}: {}'.format(h[4], p))
-
-    print('DONE')
 
 
 if __name__ == "__main__":
