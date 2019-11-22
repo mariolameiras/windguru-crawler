@@ -5,6 +5,7 @@ from itertools import chain
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+import requests
 import pprint
 from core import hmm
 
@@ -60,6 +61,28 @@ def fetch_model(soup,table_id,model_id):
 
     return model
 
+def fetch_ipma(id_place):
+    ipma_url = "https://www.ipma.pt/pt/maritima/costeira/index.jsp?idLocal="
+    page = requests.get(ipma_url+id_place)
+    soup = BeautifulSoup(page.content, 'html.parser')
+
+    days = soup.select('ul.simpleTabsNavigation li a')
+    # For each a split , first part
+    tables = soup.select('table.tablelist')
+
+    cols = [header.text for header in tables[0].findAll('th')]
+    col_idx = cols.index('Periodoonda')
+    col_values = [td[col_idx].string
+                  for td in [tr.findAll('td')
+                             for tr in tables[0].findAll('tr')]]
+
+    print("done")
+    #print(tab1)
+#    a #tabber19_a_0
+#    tabber19_div_0
+#    table
+
+#    print(print.prettify())
 
 
 def main():
@@ -76,8 +99,10 @@ def main():
 
     model = fetch_model(soup,'tabid_6_0_dates','tabid_6_0_PERPW')
 
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(model)
+    ipma = fetch_ipma("27")
+
+    #pp = pprint.PrettyPrinter(indent=4)
+    ##pp.pprint(model)
 
 
 
